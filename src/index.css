@@ -1,0 +1,75 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+@import "tailwindcss";
+
+:root {
+  --paper: #faf9f6;
+  --paper-raised: #ffffff;
+  --ink: #1c1e1b;
+  --ink-soft: #6b6b63;
+  --ink-faint: #a7a69c;
+  --border: #e4e2da;
+  --border-soft: #edece5;
+
+  --work: #2f6b4f;
+  --work-soft: #e6f0ea;
+  --work-strong: #1f4d38;
+
+  --selected: #2f5da8;
+  --selected-soft: #e8eefa;
+
+  --sunday: #b8483f;
+  --saturday: #4d78ad;
+
+  --negative: #b8483f;
+
+  font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.ledger-total {
+  letter-spacing: -0.02em;
+}
+
+.ledger-rule {
+  background-image: linear-gradient(to right, var(--border) 45%, transparent 0%);
+  background-position: bottom;
+  background-size: 6px 1px;
+  background-repeat: repeat-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
