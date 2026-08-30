@@ -1,14 +1,19 @@
 import { useMemo, useState } from 'react';
 import { Header } from '@/components/Header/Header';
+import { MonthRateBar } from '@/components/MonthRateBar/MonthRateBar';
 import { SalarySummary } from '@/components/SalarySummary/SalarySummary';
 import { Calendar } from '@/components/Calendar/Calendar';
 import { WorkRecordModal } from '@/components/WorkRecordModal/WorkRecordModal';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useMonthRecords } from '@/hooks/useWorkRecords';
-import { saveWorkRecord, deleteWorkRecord } from '@/services/workRecords';
+import { useMonthSettings } from '@/hooks/useMonthSettings';
+import { saveWorkRecord, deleteWorkRecord, recalculateRecordsWithNewRates } from '@/services/workRecords';
+import { setMonthSettings } from '@/services/monthSettings';
 import { addMonths } from '@/utils/dateUtils';
 import { useToast } from '@/context/ToastContext';
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function Dashboard() {
   const { user, profile, profileLoading } = useAuth();
@@ -20,8 +25,10 @@ export function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [applyingRate, setApplyingRate] = useState(false);
 
   const { records, summary, loading } = useMonthRecords(user?.uid, year, month);
+  const { monthSettings } = useMonthSettings(user?.uid, year, month);
 
   const recordsByDate = useMemo(() => {
     const map = new Map();
@@ -31,6 +38,11 @@ export function Dashboard() {
 
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
   const existingRecord = selectedDate ? recordsByDate.get(selectedDate) : undefined;
+
+  // This month's effective rate: the month-specific override if one has been set,
+  // otherwise the user's global default from Settings.
+  const effectiveHourlyRate = monthSettings?.hourlyRate ?? profile?.hourlyRate ?? 10000;
+  const effectiveTaxRate = monthSettings?.taxRate ?? profile?.taxRate ?? 3.3;
 
   function goToMonth(delta) {
     const next = addMonths(year, month, delta);
@@ -76,6 +88,22 @@ export function Dashboard() {
     }
   }
 
+  async function handleApplyMonthRate(newRate, newTax) {
+    if (!user) return;
+    setApplyingRate(true);
+    try {
+      await setMonthSettings(user.uid, year, month, newRate, newTax);
+      if (records.length > 0) {
+        await recalculateRecordsWithNewRates(user.uid, records, newRate, newTax);
+      }
+      showToast(`${MONTH_SHORT[month]} rate updated.`, 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not update the rate.', 'error');
+    } finally {
+      setApplyingRate(false);
+    }
+  }
+
   if (profileLoading) {
     return (
       <div className="px-4 pt-6 space-y-4">
@@ -103,7 +131,16 @@ export function Dashboard() {
         </div>
       ) : (
         <>
-          <SalarySummary monthLabel={`${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month]} ${year}`} summary={summary} />
+          <SalarySummary monthLabel={`${MONTH_SHORT[month]} ${year}`} summary={summary} />
+
+          <MonthRateBar
+            monthLabel={`${MONTH_SHORT[month]} ${year}`}
+            hourlyRate={effectiveHourlyRate}
+            taxRate={effectiveTaxRate}
+            recordCount={records.length}
+            saving={applyingRate}
+            onApply={handleApplyMonthRate}
+          />
 
           {records.length === 0 && (
             <div className="mx-4 mb-3 rounded-xl bg-[var(--work-soft)] px-4 py-3 text-center">
@@ -127,8 +164,8 @@ export function Dashboard() {
           open={modalOpen}
           dateKey={selectedDate}
           existingRecord={existingRecord}
-          defaultHourlyRate={profile?.hourlyRate ?? 10000}
-          defaultTaxRate={profile?.taxRate ?? 3.3}
+          defaultHourlyRate={effectiveHourlyRate}
+          defaultTaxRate={effectiveTaxRate}
           saving={saving}
           onClose={() => setModalOpen(false)}
           onSave={handleSave}

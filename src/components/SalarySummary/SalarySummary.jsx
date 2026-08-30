@@ -6,11 +6,11 @@ export function SalarySummary({ monthLabel, summary }) {
   return (
     <div className="px-4 pt-6 pb-5 text-center">
       <p className="text-[13px] font-medium text-[var(--ink-faint)] tracking-wide mb-2">{monthLabel} · Net Salary</p>
-      <p className="ledger-total tabular text-[42px] leading-none font-bold text-[var(--ink)] mb-1">
+      <p className="ledger-total tabular text-[30px] sm:text-[42px] leading-none font-bold text-[var(--ink)] mb-1 break-all px-2">
         {formatCurrency(summary.netSalary)}
       </p>
       <div className="ledger-rule h-px w-24 mx-auto my-4" />
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex">
         <StatCard label="Hours" value={formatHoursMinutes(summary.totalHours)} />
         <StatCard label="Gross" value={formatCurrency(summary.grossSalary)} />
         <StatCard label="Tax" value={formatSignedCurrency(-summary.taxAmount)} tone="negative" />

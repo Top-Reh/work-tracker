@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { SocialSignIn } from '@/components/SocialSignIn/SocialSignIn';
 import { loginUser, resetPassword } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
 
@@ -42,7 +43,7 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-svh flex items-center justify-center bg-[var(--paper)] px-4">
+    <div className="h-dvh overflow-y-auto flex items-center justify-center bg-[var(--paper)] px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-2xl bg-[var(--work)] flex items-center justify-center mb-3">
@@ -68,6 +69,8 @@ export function Login() {
             {loading ? 'Signing in…' : 'Sign In'}
           </Button>
         </form>
+
+        <SocialSignIn onSuccess={() => navigate('/')} onError={(msg) => showToast(msg, 'error')} />
 
         <p className="text-center text-[14px] text-[var(--ink-soft)] mt-6">
           Don't have an account?{' '}

@@ -13,7 +13,7 @@ export function Sidebar() {
   const { profile } = useAuth();
 
   return (
-    <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 border-r border-[var(--border)] min-h-svh px-4 py-6">
+    <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 border-r border-[var(--border)] h-full overflow-y-auto px-4 py-6">
       <div className="flex items-center gap-2 px-2 mb-8">
         <div className="w-8 h-8 rounded-lg bg-[var(--work)] flex items-center justify-center">
           <Wallet size={16} className="text-white" />

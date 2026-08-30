@@ -1,13 +1,11 @@
 {
   "name": "work-tracker",
-  "homepage": "https://top-reh.github.io/work-tracker/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-  "deploy": "gh-pages -d dist",
     "lint": "oxlint",
     "preview": "vite preview"
   },

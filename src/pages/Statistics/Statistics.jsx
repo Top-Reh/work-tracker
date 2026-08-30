@@ -50,7 +50,7 @@ export function Statistics() {
 
       <Card className="p-5 mb-5 text-center">
         <p className="text-[13px] font-medium text-[var(--ink-faint)] mb-1">Year Total Net Salary</p>
-        <p className="ledger-total tabular text-[32px] font-bold text-[var(--ink)] mb-3">{formatCurrency(yearTotal.netSalary)}</p>
+        <p className="ledger-total tabular text-[24px] sm:text-[32px] font-bold text-[var(--ink)] mb-3 break-all">{formatCurrency(yearTotal.netSalary)}</p>
         <div className="grid grid-cols-3 gap-2 text-left">
           <div>
             <p className="text-[11px] text-[var(--ink-faint)] uppercase">Hours</p>

@@ -4,19 +4,22 @@ A personal work-hours and salary tracker. Log the hours you worked on a calendar
 
 ## Features
 
-- Email/password authentication (register, login, logout, password reset, change password, delete account)
+- Email/password, Google, Facebook, and phone (SMS code) sign-in
 - Monthly calendar with per-day work stamps (hours + net salary shown inline)
 - Add / edit / delete work records with live gross → tax → net calculation as you type
-- Each record stores the hourly rate and tax rate that were active when it was created, so changing your default rate never rewrites historical pay
+- Two ways to log a day: type hours/minutes directly, or enter a start and end time and let the app calculate the duration (overnight shifts supported)
+- Per-month rate override: change the hourly rate/tax rate for just one month from a bar at the top of the calendar, with a confirmation step before it recalculates that month's existing records. Other months are never affected, and new months start back at your Settings default.
+- Each record stores the hourly rate and tax rate that were active when it was created, so a plain rate change never silently rewrites historical pay
 - Monthly dashboard totals (hours, gross, tax, net) that update instantly on add/edit/delete
 - Month-to-month and year-to-year navigation, with a "Today" shortcut
 - Yearly statistics page with a per-month breakdown and year totals
-- Settings page for profile, hourly rate, tax rate, appearance (light/dark/system), password change, and account deletion
+- Settings page for profile and default hourly rate/tax rate
 - Input validation (hours 0–24, minutes 0–59, hourly rate ≥ 0, tax rate 0–100%) with friendly error messages
 - Loading skeletons, empty states, and friendly (non-Firebase-internal) error messages throughout
 - Timezone-safe date handling — a work day is stored and read as a local calendar date and never shifts due to UTC conversion
 - Firestore security rules that strictly isolate each user's data by their auth UID
-- Responsive: bottom navigation + stacked layout on mobile, sidebar + centered layout on desktop
+- Fixed-viewport layout: the outer app never scrolls — only the calendar/content area does, so the sidebar (desktop) and bottom nav (mobile) always stay in place
+- Responsive: bottom navigation + stacked layout on mobile, sidebar + centered layout on desktop, with smaller type sizes on narrow screens
 
 ## Tech Stack
 
@@ -53,8 +56,12 @@ npm install
 
 1. Go to the [Firebase console](https://console.firebase.google.com) and create a new project (or use an existing one).
 2. In **Project settings → General → Your apps**, click the web icon (`</>`) to register a web app. Firebase will show you a `firebaseConfig` object — you'll need these values in step 4.
-3. In **Build → Authentication → Sign-in method**, enable the **Email/Password** provider.
-   - Phone authentication is supported by the codebase's architecture but is off by default; enable the **Phone** provider here if you want to wire it in later.
+3. In **Build → Authentication → Sign-in method**, enable the sign-in methods you want to offer:
+   - **Email/Password** — required, this is the base method.
+   - **Google** — enable it and pick a support email; no extra setup needed.
+   - **Facebook** — enable it, then paste in an App ID and App Secret from a [Facebook Developer app](https://developers.facebook.com/apps) you create separately. Facebook will also ask you to whitelist the OAuth redirect URI Firebase shows you on this screen.
+   - **Phone** — enable it. Phone sign-in uses an invisible reCAPTCHA that the app already renders (`<div id="recaptcha-container">` in `SocialSignIn.jsx`), so no extra code changes are needed. Note Firebase's free tier only allows a limited number of SMS messages per day.
+   - If you skip any of these, its button will simply show a "Something went wrong" toast when clicked instead of breaking the rest of the app.
 4. In **Build → Firestore Database**, click **Create database** and start in production mode (the security rules below will handle access control).
 
 ## 3. Environment Variables
@@ -95,14 +102,21 @@ firebase deploy --only firestore:rules
 
 ```
 users/{uid}
-  name, email, phone?, hourlyRate, taxRate, theme, createdAt, updatedAt
+  name, email, phone?, hourlyRate, taxRate, createdAt, updatedAt
 
 users/{uid}/workRecords/{date}   # document id is the "YYYY-MM-DD" date itself
   date, hours, minutes, totalHours,
   hourlyRate, grossSalary,
   taxRate, taxAmount, netSalary,
-  note, createdAt, updatedAt
+  note, startTime?, endTime?, createdAt, updatedAt
+
+users/{uid}/monthSettings/{YYYY-MM}   # optional per-month rate override
+  hourlyRate, taxRate, updatedAt
 ```
+
+`startTime`/`endTime` are only set when the record was created using the "Start & end time" entry mode; they're `null` for records entered as plain hours/minutes.
+
+A `monthSettings` document only exists for months where the user has explicitly changed the rate via the rate bar at the top of the calendar. When present, it overrides the user's global default for that month only — both for new records and (after confirmation) for records already logged that month.
 
 Using the date string as the document id guarantees one record per day per user and makes edits idempotent (saving the same date again just updates that record).
 

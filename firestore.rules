@@ -30,6 +30,17 @@ service cloud.firestore {
           && request.resource.data.taxRate is number
           && request.resource.data.taxRate >= 0 && request.resource.data.taxRate <= 100;
       }
+
+      // Per-month rate overrides: users/{uid}/monthSettings/{YYYY-MM}
+      match /monthSettings/{monthId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.hourlyRate is number
+          && request.resource.data.hourlyRate >= 0
+          && request.resource.data.taxRate is number
+          && request.resource.data.taxRate >= 0 && request.resource.data.taxRate <= 100;
+      }
     }
 
     // Deny everything else by default.

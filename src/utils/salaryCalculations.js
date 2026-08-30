@@ -1,4 +1,29 @@
 /**
+ * Converts "HH:MM" start/end clock times into { hours, minutes } worked.
+ * If end is earlier than or equal to start, the shift is assumed to run
+ * past midnight (e.g. 22:00 -> 06:00 is an 8 hour overnight shift).
+ */
+export function calculateDurationFromTimes(startTime, endTime) {
+  if (!startTime || !endTime) return { hours: 0, minutes: 0 };
+
+  const [startH, startM] = startTime.split(':').map(Number);
+  const [endH, endM] = endTime.split(':').map(Number);
+
+  let startTotal = startH * 60 + startM;
+  let endTotal = endH * 60 + endM;
+
+  if (endTotal <= startTotal) {
+    endTotal += 24 * 60; // overnight shift, wraps past midnight
+  }
+
+  const diffMinutes = endTotal - startTotal;
+  const hours = Math.floor(diffMinutes / 60);
+  const minutes = diffMinutes % 60;
+
+  return { hours, minutes };
+}
+
+/**
  * Converts hours + minutes into a decimal total, e.g. 8h 30m -> 8.5
  */
 export function toTotalHours(hours, minutes) {

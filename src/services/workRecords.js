@@ -8,6 +8,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { calculateRecord } from '@/utils/salaryCalculations';
@@ -88,6 +89,8 @@ export async function saveWorkRecord(uid, input) {
         taxAmount: calc.taxAmount,
         netSalary: calc.netSalary,
         note: input.note ?? '',
+        startTime: input.startTime ?? null,
+        endTime: input.endTime ?? null,
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
       },
@@ -112,8 +115,36 @@ export async function updateWorkRecord(uid, recordId, input) {
       taxAmount: calc.taxAmount,
       netSalary: calc.netSalary,
       note: input.note ?? '',
+      startTime: input.startTime ?? null,
+      endTime: input.endTime ?? null,
       updatedAt: serverTimestamp(),
     });
+  } catch (error) {
+    throw friendlyFirestoreError(error);
+  }
+}
+
+/**
+ * Recalculates every given record with a new hourly rate / tax rate (hours & minutes
+ * stay the same) and writes them all in a single atomic batch. Used when a user changes
+ * the rate for an entire month via the month-rate bar on the dashboard.
+ */
+export async function recalculateRecordsWithNewRates(uid, records, hourlyRate, taxRate) {
+  try {
+    const batch = writeBatch(db);
+    records.forEach((record) => {
+      const calc = calculateRecord(record.hours, record.minutes, hourlyRate, taxRate);
+      const ref = doc(db, 'users', uid, 'workRecords', record.id);
+      batch.update(ref, {
+        hourlyRate,
+        taxRate,
+        grossSalary: calc.grossSalary,
+        taxAmount: calc.taxAmount,
+        netSalary: calc.netSalary,
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
   } catch (error) {
     throw friendlyFirestoreError(error);
   }
