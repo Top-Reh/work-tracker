@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Phone } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { signInWithGoogle, signInWithFacebook, sendPhoneVerificationCode, confirmPhoneCode } from '@/services/auth';
+import { signInWithGoogle, sendPhoneVerificationCode, confirmPhoneCode } from '@/services/auth';
 
 export function SocialSignIn({ onSuccess, onError }) {
   const [phoneMode, setPhoneMode] = useState(false);
@@ -18,18 +18,6 @@ export function SocialSignIn({ onSuccess, onError }) {
       onSuccess();
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Could not sign in with Google.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleFacebook() {
-    setLoading(true);
-    try {
-      await signInWithFacebook();
-      onSuccess();
-    } catch (err) {
-      onError(err instanceof Error ? err.message : 'Could not sign in with Facebook.');
     } finally {
       setLoading(false);
     }
@@ -74,9 +62,6 @@ export function SocialSignIn({ onSuccess, onError }) {
         <div className="space-y-2">
           <Button variant="secondary" fullWidth onClick={handleGoogle} disabled={loading}>
             Continue with Google
-          </Button>
-          <Button variant="secondary" fullWidth onClick={handleFacebook} disabled={loading}>
-            Continue with Facebook
           </Button>
           <Button variant="secondary" fullWidth onClick={() => setPhoneMode(true)} disabled={loading}>
             <span className="flex items-center justify-center gap-2">
