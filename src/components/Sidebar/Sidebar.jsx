@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { CalendarDays, BarChart3, Settings, LogOut, Wallet } from 'lucide-react';
-import logo from '../../assets/logo.png'
+import { CalendarDays, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Logo } from '@/components/Logo/Logo';
 import { logoutUser } from '@/services/auth';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -9,7 +9,6 @@ const NAV_ITEMS = [
   { to: '/statistics', label: 'Statistics', icon: BarChart3, end: false },
   { to: '/settings', label: 'Settings', icon: Settings, end: false },
 ];
-          //<Wallet size={16} className="text-white" />
 
 export function Sidebar() {
   const { profile } = useAuth();
@@ -17,8 +16,8 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 border-r border-[var(--border)] h-full overflow-y-auto px-4 py-6">
       <div className="flex items-center gap-2 px-2 mb-8">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-[#0972ff]">
-          <img src={logo} alt='logo' className='w-full h-full object-center object-contain'></img>
+        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+          <Logo size={32} />
         </div>
         <span className="font-semibold text-[15px] text-[var(--ink)]">Work Tracker</span>
       </div>

@@ -11,14 +11,21 @@ export function Settings() {
   const { showToast } = useToast();
 
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
   const [taxRate, setTaxRate] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Only lock the field for accounts that actually signed in with an email/password
+  // or Google credential — phone-only accounts have no login email, so they can
+  // freely add one here as an optional contact detail.
+  const emailLocked = Boolean(user?.email);
+
   useEffect(() => {
     if (!profile) return;
     setName(profile.name ?? '');
+    setEmail(profile.email ?? '');
     setPhone(profile.phone ?? '');
     setHourlyRate(String(profile.hourlyRate ?? 0));
     setTaxRate(String(profile.taxRate ?? 0));
@@ -34,7 +41,13 @@ export function Settings() {
 
     setSaving(true);
     try {
-      await updateProfileSettings(user.uid, { name: name.trim(), phone: phone.trim(), hourlyRate: rate, taxRate: tax });
+      await updateProfileSettings(user.uid, {
+        name: name.trim(),
+        email: emailLocked ? profile?.email ?? '' : email.trim(),
+        phone: phone.trim(),
+        hourlyRate: rate,
+        taxRate: tax,
+      });
       showToast('Settings saved.', 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Could not save settings.', 'error');
@@ -51,7 +64,17 @@ export function Settings() {
         <h2 className="text-[14px] font-semibold text-[var(--ink)] mb-4">Profile</h2>
         <div className="space-y-3">
           <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label="Email" value={profile?.email ?? ''} disabled />
+          <Input
+            label="Email"
+            type="email"
+            placeholder={emailLocked ? undefined : 'Optional'}
+            value={emailLocked ? profile?.email ?? '' : email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={emailLocked}
+          />
+          {!emailLocked && (
+            <p className="text-[12px] text-[var(--ink-faint)] -mt-2">You signed in with your phone number — add an email here if you'd like one on file.</p>
+          )}
           <Input label="Phone" type="tel" placeholder="Optional" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
       </Card>

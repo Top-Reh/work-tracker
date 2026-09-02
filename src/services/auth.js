@@ -8,7 +8,6 @@ import {
   updateProfile,
   signInWithPopup,
   GoogleAuthProvider,
-  FacebookAuthProvider,
   RecaptchaVerifier,
   signInWithPhoneNumber,
 } from 'firebase/auth';
@@ -34,7 +33,7 @@ function friendlyAuthError(error) {
     'auth/popup-closed-by-user': 'Sign-in was cancelled.',
     'auth/cancelled-popup-request': 'Sign-in was cancelled.',
     'auth/account-exists-with-different-credential': 'An account already exists with this email using a different sign-in method.',
-    'auth/invalid-phone-number': 'Please enter a valid phone number, including country code (e.g. +82…).',
+    'auth/invalid-phone-number': 'Please enter a valid phone number, e.g. 010 1234 5678.',
     'auth/invalid-verification-code': 'That verification code is incorrect.',
     'auth/code-expired': 'That verification code has expired. Please request a new one.',
   };
@@ -97,24 +96,20 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function signInWithFacebook() {
-  try {
-    const credential = await signInWithPopup(auth, new FacebookAuthProvider());
-    await ensureUserProfile(credential.user);
-    return credential.user;
-  } catch (error) {
-    throw friendlyAuthError(error);
-  }
-}
-
 /**
  * Sets up the invisible reCAPTCHA required by phone auth. Must be called once,
  * with an element id that exists in the DOM (e.g. a hidden <div id="recaptcha-container" />).
  */
 export function setupRecaptcha(containerId) {
-  if (!window.recaptchaVerifier) {
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
+  if (window.recaptchaVerifier) {
+    try {
+      window.recaptchaVerifier.clear();
+    } catch {
+      // Old verifier's container may already be gone from the DOM — safe to ignore.
+    }
+    window.recaptchaVerifier = null;
   }
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
   return window.recaptchaVerifier;
 }
 
