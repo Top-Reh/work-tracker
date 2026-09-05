@@ -1,17 +1,6 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where,
-  writeBatch,
-} from 'firebase/firestore';
+import { collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, setDoc, where, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
-import { calculateRecord } from '@/utils/salaryCalculations';
+import { calculateRecord, calculateMonthlySummary } from '@/utils/salaryCalculations';
 
 export class WorkRecordError extends Error {}
 
@@ -29,7 +18,7 @@ function recordsCollection(uid) {
   return collection(db, 'users', uid, 'workRecords');
 }
 
-/** Deterministic doc id per date, so a user can only ever have one record per day. */
+/** Deterministic doc id per date, so a user can only ever have one day-record per date. */
 function recordDocId(dateKey) {
   return dateKey;
 }
@@ -70,27 +59,45 @@ export function subscribeToYearRecords(uid, year, onChange, onError) {
   );
 }
 
-export async function saveWorkRecord(uid, input) {
-  try {
-    const calc = calculateRecord(input.hours, input.minutes, input.hourlyRate, input.taxRate);
-    const id = recordDocId(input.date);
-    const ref = doc(db, 'users', uid, 'workRecords', id);
+/**
+ * Builds a single time-entry object (with its own gross/tax/net calculated) from raw
+ * form input. `id` is reused when editing an existing entry, or generated fresh for a new one.
+ */
+export function buildEntry(id, input) {
+  const calc = calculateRecord(input.hours, input.minutes, input.hourlyRate, input.taxRate);
+  return {
+    id,
+    hours: input.hours,
+    minutes: input.minutes,
+    totalHours: calc.totalHours,
+    hourlyRate: input.hourlyRate,
+    grossSalary: calc.grossSalary,
+    taxRate: input.taxRate,
+    taxAmount: calc.taxAmount,
+    netSalary: calc.netSalary,
+    note: input.note ?? '',
+    startTime: input.startTime ?? null,
+    endTime: input.endTime ?? null,
+  };
+}
 
+/**
+ * Writes a day's full list of time entries, along with the day's aggregate totals
+ * (the sum of every entry — this is what the calendar stamp and monthly summary read).
+ */
+export async function saveDayEntries(uid, date, entries) {
+  try {
+    const totals = calculateMonthlySummary(entries); // sums totalHours/grossSalary/taxAmount/netSalary across entries
+    const ref = doc(db, 'users', uid, 'workRecords', recordDocId(date));
     await setDoc(
       ref,
       {
-        date: input.date,
-        hours: input.hours,
-        minutes: input.minutes,
-        totalHours: calc.totalHours,
-        hourlyRate: input.hourlyRate,
-        grossSalary: calc.grossSalary,
-        taxRate: input.taxRate,
-        taxAmount: calc.taxAmount,
-        netSalary: calc.netSalary,
-        note: input.note ?? '',
-        startTime: input.startTime ?? null,
-        endTime: input.endTime ?? null,
+        date,
+        entries,
+        totalHours: totals.totalHours,
+        grossSalary: totals.grossSalary,
+        taxAmount: totals.taxAmount,
+        netSalary: totals.netSalary,
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
       },
@@ -101,58 +108,39 @@ export async function saveWorkRecord(uid, input) {
   }
 }
 
-export async function updateWorkRecord(uid, recordId, input) {
+export async function deleteDayRecord(uid, date) {
   try {
-    const calc = calculateRecord(input.hours, input.minutes, input.hourlyRate, input.taxRate);
-    const ref = doc(db, 'users', uid, 'workRecords', recordId);
-    await updateDoc(ref, {
-      hours: input.hours,
-      minutes: input.minutes,
-      totalHours: calc.totalHours,
-      hourlyRate: input.hourlyRate,
-      grossSalary: calc.grossSalary,
-      taxRate: input.taxRate,
-      taxAmount: calc.taxAmount,
-      netSalary: calc.netSalary,
-      note: input.note ?? '',
-      startTime: input.startTime ?? null,
-      endTime: input.endTime ?? null,
-      updatedAt: serverTimestamp(),
-    });
+    await deleteDoc(doc(db, 'users', uid, 'workRecords', recordDocId(date)));
   } catch (error) {
     throw friendlyFirestoreError(error);
   }
 }
 
 /**
- * Recalculates every given record with a new hourly rate / tax rate (hours & minutes
- * stay the same) and writes them all in a single atomic batch. Used when a user changes
- * the rate for an entire month via the month-rate bar on the dashboard.
+ * Recalculates every entry inside every given day-record with a new hourly rate / tax
+ * rate (hours & minutes stay the same) and writes them all in a single atomic batch.
+ * Used when a user changes the rate for an entire month via the month-rate bar.
  */
 export async function recalculateRecordsWithNewRates(uid, records, hourlyRate, taxRate) {
   try {
     const batch = writeBatch(db);
     records.forEach((record) => {
-      const calc = calculateRecord(record.hours, record.minutes, hourlyRate, taxRate);
+      const newEntries = (record.entries ?? []).map((entry) => {
+        const calc = calculateRecord(entry.hours, entry.minutes, hourlyRate, taxRate);
+        return { ...entry, hourlyRate, taxRate, grossSalary: calc.grossSalary, taxAmount: calc.taxAmount, netSalary: calc.netSalary };
+      });
+      const totals = calculateMonthlySummary(newEntries);
       const ref = doc(db, 'users', uid, 'workRecords', record.id);
       batch.update(ref, {
-        hourlyRate,
-        taxRate,
-        grossSalary: calc.grossSalary,
-        taxAmount: calc.taxAmount,
-        netSalary: calc.netSalary,
+        entries: newEntries,
+        totalHours: totals.totalHours,
+        grossSalary: totals.grossSalary,
+        taxAmount: totals.taxAmount,
+        netSalary: totals.netSalary,
         updatedAt: serverTimestamp(),
       });
     });
     await batch.commit();
-  } catch (error) {
-    throw friendlyFirestoreError(error);
-  }
-}
-
-export async function deleteWorkRecord(uid, recordId) {
-  try {
-    await deleteDoc(doc(db, 'users', uid, 'workRecords', recordId));
   } catch (error) {
     throw friendlyFirestoreError(error);
   }

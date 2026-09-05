@@ -12,23 +12,24 @@ service cloud.firestore {
       allow delete: if false;
 
       // A user's work records: users/{uid}/workRecords/{recordId}
+      // Each day-record holds a list of individual time entries plus day-level
+      // totals (see services/workRecords.js). Security rules can't reach inside
+      // each list element to check its own fields, so validation here is at the
+      // aggregate/day level; the app itself is responsible for each entry's shape.
       match /workRecords/{recordId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
 
-        // Extra guardrails on write: keep the calculated fields consistent
-        // and make sure a record can never be attributed to a different date
-        // than its own document id (doc id == date, see services/workRecords.ts).
         allow create, update: if request.auth != null
           && request.auth.uid == uid
           && request.resource.data.date is string
-          && request.resource.data.hours is number
-          && request.resource.data.hours >= 0 && request.resource.data.hours <= 24
-          && request.resource.data.minutes is number
-          && request.resource.data.minutes >= 0 && request.resource.data.minutes <= 59
-          && request.resource.data.hourlyRate is number
-          && request.resource.data.hourlyRate >= 0
-          && request.resource.data.taxRate is number
-          && request.resource.data.taxRate >= 0 && request.resource.data.taxRate <= 100;
+          && request.resource.data.entries is list
+          && request.resource.data.totalHours is number
+          && request.resource.data.totalHours >= 0
+          && request.resource.data.grossSalary is number
+          && request.resource.data.grossSalary >= 0
+          && request.resource.data.taxAmount is number
+          && request.resource.data.taxAmount >= 0
+          && request.resource.data.netSalary is number;
       }
 
       // Per-month rate overrides: users/{uid}/monthSettings/{YYYY-MM}

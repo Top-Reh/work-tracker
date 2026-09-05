@@ -8,9 +8,10 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useMonthRecords } from '@/hooks/useWorkRecords';
 import { useMonthSettings } from '@/hooks/useMonthSettings';
-import { saveWorkRecord, deleteWorkRecord, recalculateRecordsWithNewRates } from '@/services/workRecords';
+import { buildEntry, saveDayEntries, deleteDayRecord, recalculateRecordsWithNewRates } from '@/services/workRecords';
 import { setMonthSettings } from '@/services/monthSettings';
 import { addMonths } from '@/utils/dateUtils';
+import { generateId } from '@/utils/id';
 import { useToast } from '@/context/ToastContext';
 
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -60,29 +61,44 @@ export function Dashboard() {
     setModalOpen(true);
   }
 
-  async function handleSave(data) {
-    if (!user || !selectedDate) return;
+  /** Adds a new time entry, or updates one in place if entryId is given. Returns true on success. */
+  async function handleSaveEntry(entryId, data) {
+    if (!user || !selectedDate) return false;
     setSaving(true);
     try {
-      await saveWorkRecord(user.uid, { date: selectedDate, ...data });
-      showToast('Work record saved.', 'success');
-      setModalOpen(false);
+      const currentEntries = existingRecord?.entries ?? [];
+      const entry = buildEntry(entryId ?? generateId(), data);
+      const newEntries = entryId ? currentEntries.map((e) => (e.id === entryId ? entry : e)) : [...currentEntries, entry];
+
+      await saveDayEntries(user.uid, selectedDate, newEntries);
+      showToast(entryId ? 'Time updated.' : 'Time added.', 'success');
+      return true;
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not save record.', 'error');
+      showToast(err instanceof Error ? err.message : 'Could not save.', 'error');
+      return false;
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete() {
-    if (!user || !existingRecord) return;
+  /** Removes one time entry. If it was the day's last entry, the whole day record is removed. Returns { success, emptied }. */
+  async function handleDeleteEntry(entryId) {
+    if (!user || !selectedDate) return { success: false, emptied: false };
     setSaving(true);
     try {
-      await deleteWorkRecord(user.uid, existingRecord.id);
-      showToast('Work record deleted.', 'success');
-      setModalOpen(false);
+      const currentEntries = existingRecord?.entries ?? [];
+      const newEntries = currentEntries.filter((e) => e.id !== entryId);
+
+      if (newEntries.length === 0) {
+        await deleteDayRecord(user.uid, selectedDate);
+      } else {
+        await saveDayEntries(user.uid, selectedDate, newEntries);
+      }
+      showToast('Time deleted.', 'success');
+      return { success: true, emptied: newEntries.length === 0 };
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not delete record.', 'error');
+      showToast(err instanceof Error ? err.message : 'Could not delete.', 'error');
+      return { success: false, emptied: false };
     } finally {
       setSaving(false);
     }
@@ -163,13 +179,13 @@ export function Dashboard() {
         <WorkRecordModal
           open={modalOpen}
           dateKey={selectedDate}
-          existingRecord={existingRecord}
+          entries={existingRecord?.entries ?? []}
           defaultHourlyRate={effectiveHourlyRate}
           defaultTaxRate={effectiveTaxRate}
           saving={saving}
           onClose={() => setModalOpen(false)}
-          onSave={handleSave}
-          onDelete={existingRecord ? handleDelete : undefined}
+          onSaveEntry={handleSaveEntry}
+          onDeleteEntry={handleDeleteEntry}
         />
       )}
     </div>
