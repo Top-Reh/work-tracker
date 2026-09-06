@@ -1,10 +1,12 @@
 import {
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   sendEmailVerification,
   verifyBeforeUpdateEmail,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
   updatePassword,
   deleteUser,
   updateProfile,
@@ -17,6 +19,8 @@ import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 export class AuthError extends Error {}
+
+const EMAIL_STORAGE_KEY = 'emailForSignIn';
 
 /** Maps raw Firebase error codes to friendly, user-facing messages. Never leaks internal codes. */
 function friendlyAuthError(error) {
@@ -38,6 +42,8 @@ function friendlyAuthError(error) {
     'auth/invalid-phone-number': 'Please enter a valid phone number, e.g. 010 1234 5678.',
     'auth/invalid-verification-code': 'That verification code is incorrect.',
     'auth/code-expired': 'That verification code has expired. Please request a new one.',
+    'auth/invalid-action-code': 'This link is invalid or has already been used. Please request a new one.',
+    'auth/expired-action-code': 'This link has expired. Please request a new one.',
   };
   return new AuthError(messages[code] ?? 'Something went wrong. Please try again.');
 }
@@ -59,29 +65,63 @@ async function ensureUserProfile(user, fallbackName) {
   });
 }
 
-export async function registerUser(name, email, password, hourlyRate, taxRate) {
+/**
+ * Step 1 of registration: sends a sign-in link to the given email. No account exists
+ * yet — Firebase only creates one once this exact link is opened and confirmed via
+ * completeEmailLinkSignIn. The email is cached locally so the same browser/tab can
+ * finish automatically if the link is opened there.
+ */
+export async function sendRegistrationLink(email) {
   try {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(credential.user, { displayName: name });
+    const actionCodeSettings = {
+      url: `${window.location.origin}${import.meta.env.BASE_URL}`,
+      handleCodeInApp: true,
+    };
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    window.localStorage.setItem(EMAIL_STORAGE_KEY, email);
+  } catch (error) {
+    throw friendlyAuthError(error);
+  }
+}
 
-    await setDoc(doc(db, 'users', credential.user.uid), {
+/** True if the current URL is a sign-in link Firebase just sent (i.e. the user clicked it). */
+export function isEmailLinkSignIn() {
+  return isSignInWithEmailLink(auth, window.location.href);
+}
+
+/**
+ * Step 2 of registration: completes sign-in for the link in the current URL. This is
+ * the moment the Firebase Auth account actually gets created — nothing exists before
+ * this succeeds. The email must match what the link was originally sent to.
+ */
+export async function completeEmailLinkSignIn(email) {
+  try {
+    const credential = await signInWithEmailLink(auth, email, window.location.href);
+    window.localStorage.removeItem(EMAIL_STORAGE_KEY);
+    return credential.user;
+  } catch (error) {
+    throw friendlyAuthError(error);
+  }
+}
+
+/**
+ * Step 3 of registration: the user is already signed in (via the verified link) but has
+ * no profile yet. This sets their name, a password (so they can also log in the normal
+ * way next time), their salary defaults, and creates the Firestore profile doc.
+ */
+export async function completeProfileSetup({ name, password, hourlyRate, taxRate }) {
+  if (!auth.currentUser) throw new AuthError('You must be signed in to do this.');
+  try {
+    await updateProfile(auth.currentUser, { displayName: name });
+    await updatePassword(auth.currentUser, password);
+    await setDoc(doc(db, 'users', auth.currentUser.uid), {
       name,
-      email,
+      email: auth.currentUser.email || '',
       hourlyRate,
       taxRate,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-
-    // Best-effort: a hiccup sending this shouldn't stop the account from being created.
-    // The user can always resend it later from the verification reminder banner.
-    try {
-      await sendEmailVerification(credential.user);
-    } catch {
-      // ignored — non-critical
-    }
-
-    return credential.user;
   } catch (error) {
     throw friendlyAuthError(error);
   }

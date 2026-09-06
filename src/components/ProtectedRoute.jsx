@@ -9,10 +9,23 @@ const FULL_SCREEN_SPINNER = (
 );
 
 export function ProtectedRoute({ children }) {
-  const { user, authLoading } = useAuth();
+  const { user, profile, authLoading, profileLoading } = useAuth();
 
   if (authLoading) return FULL_SCREEN_SPINNER;
   if (!user) return <Navigate to="/login" replace />;
+  if (profileLoading) return FULL_SCREEN_SPINNER;
+  if (!profile) return <Navigate to="/complete-profile" replace />;
 
   return <AppShell>{children}</AppShell>;
+}
+
+/** Guards /complete-profile itself: needs a signed-in user, but deliberately not a profile yet. */
+export function OnboardingRoute({ children }) {
+  const { user, profile, authLoading, profileLoading } = useAuth();
+
+  if (authLoading || profileLoading) return FULL_SCREEN_SPINNER;
+  if (!user) return <Navigate to="/login" replace />;
+  if (profile) return <Navigate to="/" replace />;
+
+  return children;
 }
