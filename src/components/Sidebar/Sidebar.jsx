@@ -11,7 +11,7 @@ const NAV_ITEMS = [
 ];
 
 export function Sidebar() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
   return (
     <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 border-r border-[var(--border)] h-full overflow-y-auto px-4 py-6">
@@ -43,7 +43,7 @@ export function Sidebar() {
       <div className="mt-auto pt-4 border-t border-[var(--border)]">
         <div className="px-3 mb-3">
           <p className="text-[13px] font-medium text-[var(--ink)] truncate">{profile?.name ?? 'Loading…'}</p>
-          <p className="text-[12px] text-[var(--ink-faint)] truncate">{profile?.email}</p>
+          <p className="text-[12px] text-[var(--ink-faint)] truncate">{user?.email}</p>
         </div>
         <button
           onClick={() => logoutUser()}

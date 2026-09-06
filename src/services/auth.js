@@ -3,6 +3,8 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
+  verifyBeforeUpdateEmail,
   updatePassword,
   deleteUser,
   updateProfile,
@@ -71,6 +73,14 @@ export async function registerUser(name, email, password, hourlyRate, taxRate) {
       updatedAt: serverTimestamp(),
     });
 
+    // Best-effort: a hiccup sending this shouldn't stop the account from being created.
+    // The user can always resend it later from the verification reminder banner.
+    try {
+      await sendEmailVerification(credential.user);
+    } catch {
+      // ignored — non-critical
+    }
+
     return credential.user;
   } catch (error) {
     throw friendlyAuthError(error);
@@ -129,6 +139,30 @@ export async function confirmPhoneCode(confirmationResult, code) {
     const credential = await confirmationResult.confirm(code);
     await ensureUserProfile(credential.user, credential.user.phoneNumber);
     return credential.user;
+  } catch (error) {
+    throw friendlyAuthError(error);
+  }
+}
+
+export async function resendVerificationEmail() {
+  if (!auth.currentUser) throw new AuthError('You must be signed in to do this.');
+  try {
+    await sendEmailVerification(auth.currentUser);
+  } catch (error) {
+    throw friendlyAuthError(error);
+  }
+}
+
+/**
+ * Adds or changes the signed-in user's email. This does NOT take effect immediately —
+ * Firebase sends a confirmation link to the new address, and the account's email only
+ * actually updates once that link is clicked. This is what protects against typos or
+ * fake addresses: an unclicked link just quietly never takes effect.
+ */
+export async function changeEmail(newEmail) {
+  if (!auth.currentUser) throw new AuthError('You must be signed in to do this.');
+  try {
+    await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
   } catch (error) {
     throw friendlyAuthError(error);
   }
