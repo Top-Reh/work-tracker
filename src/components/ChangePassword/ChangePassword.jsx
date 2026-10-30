@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { changePasswordWithCurrent } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
+//gg//
 
 /**
  * Only for accounts that sign in with a password (otherwise PasswordSetup is shown instead).
