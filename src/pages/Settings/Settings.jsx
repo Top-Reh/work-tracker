@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { EmailField } from '@/components/EmailField/EmailField';
+import { PasswordSetup } from '@/components/PasswordSetup/PasswordSetup';
+import { ChangePassword } from '@/components/ChangePassword/ChangePassword';
 import { useAuth } from '@/hooks/useAuth';
 import { updateProfileSettings } from '@/services/userProfile';
 import { useToast } from '@/context/ToastContext';
@@ -56,6 +58,9 @@ export function Settings() {
           <Input label="Phone" type="tel" placeholder="Optional" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
       </Card>
+
+      <PasswordSetup />
+      <ChangePassword />
 
       <Card className="p-5">
         <h2 className="text-[14px] font-semibold text-[var(--ink)] mb-1">Salary Settings</h2>

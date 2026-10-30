@@ -1,7 +1,6 @@
 /**
  * Converts "HH:MM" start/end clock times into { hours, minutes } worked.
- * If end is earlier than or equal to start, the shift is assumed to run
- * past midnight (e.g. 22:00 -> 06:00 is an 8 hour overnight shift).
+ * If end is earlier than start, the shift is assumed to run past midnight (e.g. 22:00 -> 06:00 is an 8 hour overnight shift).
  */
 export function calculateDurationFromTimes(startTime, endTime) {
   if (!startTime || !endTime) return { hours: 0, minutes: 0 };
@@ -12,7 +11,7 @@ export function calculateDurationFromTimes(startTime, endTime) {
   let startTotal = startH * 60 + startM;
   let endTotal = endH * 60 + endM;
 
-  if (endTotal <= startTotal) {
+  if (endTotal < startTotal) {
     endTotal += 24 * 60; // overnight shift, wraps past midnight
   }
 

@@ -85,3 +85,9 @@ export function isSunday(weekday) {
 export function isSaturday(weekday) {
   return weekday === 6;
 }
+
+/** The current local time as "HH:MM" (24h), for pre-filling time inputs. */
+export function currentTimeKey() {
+  const now = new Date();
+  return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+}

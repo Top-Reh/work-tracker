@@ -42,7 +42,7 @@ export function EmailVerificationBanner() {
     <div className="flex items-center gap-2.5 bg-[var(--selected-soft)] px-4 py-2.5 text-[13px]">
       <Mail size={16} className="text-[var(--selected)] shrink-0" />
       <p className="text-[var(--ink)] flex-1 min-w-0 truncate">
-        Verify <span className="font-medium">{user.email}</span> to secure your account.
+        Verify <span className="font-medium">{user.email}</span> to keep your password sign-in safe.
       </p>
       <button onClick={handleResend} disabled={sending} className="shrink-0 font-medium text-[var(--selected)] disabled:opacity-50">
         {sending ? 'Sending…' : 'Resend'}

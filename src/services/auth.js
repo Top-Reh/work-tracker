@@ -14,11 +14,27 @@ import {
   GoogleAuthProvider,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  EmailAuthProvider,
+  linkWithCredential,
+  reauthenticateWithCredential,
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 export class AuthError extends Error {}
+
+/**
+ * Thrown when Google sign-in finds an existing account for the same email under a different
+ * sign-in method (e.g. email + password). Carries what's needed to link Google to that
+ * account after the user proves they own it, instead of creating a duplicate.
+ */
+export class AccountLinkRequiredError extends AuthError {
+  constructor(email, pendingCredential) {
+    super('An account with this email already exists.');
+    this.email = email;
+    this.pendingCredential = pendingCredential;
+  }
+}
 
 const EMAIL_STORAGE_KEY = 'emailForSignIn';
 
@@ -44,6 +60,8 @@ function friendlyAuthError(error) {
     'auth/code-expired': 'That verification code has expired. Please request a new one.',
     'auth/invalid-action-code': 'This link is invalid or has already been used. Please request a new one.',
     'auth/expired-action-code': 'This link has expired. Please request a new one.',
+    'auth/provider-already-linked': 'This sign-in method is already connected to your account.',
+    'auth/credential-already-in-use': 'That account is already connected to a different user.',
   };
   return new AuthError(messages[code] ?? 'Something went wrong. Please try again.');
 }
@@ -132,6 +150,9 @@ export async function loginUser(email, password) {
     const credential = await signInWithEmailAndPassword(auth, email, password);
     return credential.user;
   } catch (error) {
+    if (error?.code === 'auth/invalid-credential' || error?.code === 'auth/wrong-password') {
+      throw new AuthError('Incorrect email or password. If you signed in with Google using this email, tap "Continue with Google" instead.');
+    }
     throw friendlyAuthError(error);
   }
 }
@@ -141,6 +162,40 @@ export async function signInWithGoogle() {
     const credential = await signInWithPopup(auth, new GoogleAuthProvider());
     await ensureUserProfile(credential.user);
     return credential.user;
+  } catch (error) {
+    if (error?.code === 'auth/account-exists-with-different-credential') {
+      const pendingCredential = GoogleAuthProvider.credentialFromError(error);
+      const email = error.customData?.email;
+      if (pendingCredential && email) throw new AccountLinkRequiredError(email, pendingCredential);
+    }
+    throw friendlyAuthError(error);
+  }
+}
+
+/**
+ * Finishes linking Google to an existing email + password account. The user signs in with
+ * their current password (which is left untouched), then Google is attached to that same
+ * account — same user, same data, and both sign-in methods work afterwards.
+ */
+export async function linkGoogleToPasswordAccount(email, password, pendingCredential) {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    await linkWithCredential(result.user, pendingCredential);
+    return result.user;
+  } catch (error) {
+    throw friendlyAuthError(error);
+  }
+}
+
+/**
+ * Adds email + password sign-in to the signed-in user (who already has an email, e.g. via
+ * Google). Uses account linking, so it never creates a second account.
+ */
+export async function addPasswordToAccount(password) {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new AuthError('Add an email to your account before setting a password.');
+  try {
+    await linkWithCredential(user, EmailAuthProvider.credential(user.email, password));
   } catch (error) {
     throw friendlyAuthError(error);
   }
@@ -220,11 +275,21 @@ export async function resetPassword(email) {
   }
 }
 
-export async function changePassword(newPassword) {
-  if (!auth.currentUser) throw new AuthError('You must be signed in to do this.');
+/**
+ * Changes the password for a user who signs in with email + password. The current password is
+ * re-checked first (Firebase requires a recent sign-in for this), so a stranger on an unlocked
+ * phone can't change it, and the user never gets bounced out by a "sign in again" error.
+ */
+export async function changePasswordWithCurrent(currentPassword, newPassword) {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new AuthError('You must be signed in to do this.');
   try {
-    await updatePassword(auth.currentUser, newPassword);
+    await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
+    await updatePassword(user, newPassword);
   } catch (error) {
+    if (error?.code === 'auth/invalid-credential' || error?.code === 'auth/wrong-password') {
+      throw new AuthError('Your current password is incorrect.');
+    }
     throw friendlyAuthError(error);
   }
 }

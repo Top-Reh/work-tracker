@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { Phone } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { signInWithGoogle } from '@/services/auth';
+import { Input } from '@/components/ui/Input';
+import { AccountLinkRequiredError, signInWithGoogle, linkGoogleToPasswordAccount, resetPassword } from '@/services/auth';
+import { useToast } from '@/context/ToastContext';
 
 export function SocialSignIn({ onSuccess, onError, onChoosePhone }) {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  // Set when Google found an existing account for the same email under a different method.
+  const [linkPrompt, setLinkPrompt] = useState(null); // { email, pendingCredential }
+  const [password, setPassword] = useState('');
 
   async function handleGoogle() {
     setLoading(true);
@@ -12,10 +18,67 @@ export function SocialSignIn({ onSuccess, onError, onChoosePhone }) {
       await signInWithGoogle();
       onSuccess();
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Could not sign in with Google.');
+      if (err instanceof AccountLinkRequiredError) {
+        setLinkPrompt({ email: err.email, pendingCredential: err.pendingCredential });
+      } else {
+        onError(err instanceof Error ? err.message : 'Could not sign in with Google.');
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleLink() {
+    if (!password) return onError('Enter your password to continue.');
+    setLoading(true);
+    try {
+      await linkGoogleToPasswordAccount(linkPrompt.email, password, linkPrompt.pendingCredential);
+      showToast('Google is now connected to your account.', 'success');
+      onSuccess();
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Could not connect Google to your account.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgot() {
+    try {
+      await resetPassword(linkPrompt.email);
+      showToast('Password reset email sent.', 'success');
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Could not send the reset email.');
+    }
+  }
+
+  if (linkPrompt) {
+    return (
+      <div className="mt-5 space-y-3">
+        <p className="text-[14px] text-[var(--ink)]">
+          An account with <span className="font-medium">{linkPrompt.email}</span> already exists. Enter its password to
+          connect Google to it — your password stays exactly the same, and both ways of signing in will work.
+        </p>
+        <Input label="Password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+        <Button fullWidth onClick={handleLink} disabled={loading}>
+          {loading ? 'Connecting…' : 'Connect Google'}
+        </Button>
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={handleForgot} className="text-[13px] text-[var(--selected)] font-medium">
+            Forgot password?
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setLinkPrompt(null);
+              setPassword('');
+            }}
+            className="text-[13px] text-[var(--ink-soft)] font-medium"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

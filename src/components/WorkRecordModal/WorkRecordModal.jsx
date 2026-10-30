@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog';
 import { calculateRecord, calculateDurationFromTimes, formatHoursMinutes } from '@/utils/salaryCalculations';
 import { formatCurrency, formatSignedCurrency } from '@/utils/currencyUtils';
-import { fromDateKey } from '@/utils/dateUtils';
+import { fromDateKey, currentTimeKey } from '@/utils/dateUtils';
 
 export function WorkRecordModal({
   open,
@@ -24,8 +24,8 @@ export function WorkRecordModal({
   const [entryMode, setEntryMode] = useState('manual'); // 'manual' | 'range'
   const [hours, setHours] = useState('0');
   const [minutes, setMinutes] = useState('0');
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('18:00');
+  const [startTime, setStartTime] = useState(currentTimeKey);
+  const [endTime, setEndTime] = useState(currentTimeKey);
   const [hourlyRate, setHourlyRate] = useState(String(defaultHourlyRate));
   const [taxRate, setTaxRate] = useState(String(defaultTaxRate));
   const [note, setNote] = useState('');
@@ -48,8 +48,9 @@ export function WorkRecordModal({
     setEntryMode('manual');
     setHours('0');
     setMinutes('0');
-    setStartTime('09:00');
-    setEndTime('18:00');
+    const now = currentTimeKey();
+    setStartTime(now);
+    setEndTime(now);
     setHourlyRate(String(defaultHourlyRate));
     setTaxRate(String(defaultTaxRate));
     setNote('');
@@ -238,8 +239,18 @@ export function WorkRecordModal({
             ) : (
               <div className="mb-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Start Time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} error={errors.hours} />
-                  <Input label="End Time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                  <div>
+                    <Input label="Start Time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} error={errors.hours} />
+                    <button type="button" onClick={() => setStartTime(currentTimeKey())} className="mt-1 text-[12px] font-medium text-[var(--selected)]">
+                      Use current time
+                    </button>
+                  </div>
+                  <div>
+                    <Input label="End Time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                    <button type="button" onClick={() => setEndTime(currentTimeKey())} className="mt-1 text-[12px] font-medium text-[var(--selected)]">
+                      Use current time
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[13px] text-[var(--ink-soft)] mt-2 text-center">
                   Auto-calculated: <span className="font-semibold text-[var(--ink)] tabular">{formatHoursMinutes(numHours + numMinutes / 60)}</span>
