@@ -3,9 +3,12 @@ import { Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog';
-import { formatCurrency } from '@/utils/currencyUtils';
+import { useLanguage } from '@/context/LanguageContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export function MonthRateBar({ monthLabel, hourlyRate, taxRate, recordCount, saving, onApply }) {
+  const { t } = useLanguage();
+  const { formatCurrency, currencySymbol } = useCurrency();
   const [editing, setEditing] = useState(false);
   const [draftRate, setDraftRate] = useState(String(hourlyRate));
   const [draftTax, setDraftTax] = useState(String(taxRate));
@@ -52,7 +55,7 @@ export function MonthRateBar({ monthLabel, hourlyRate, taxRate, recordCount, sav
           className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium text-[var(--selected)] hover:bg-[var(--selected-soft)]"
         >
           <Pencil size={13} />
-          Change
+          {t("Change")}
         </button>
       </div>
     );
@@ -62,7 +65,7 @@ export function MonthRateBar({ monthLabel, hourlyRate, taxRate, recordCount, sav
     <div className="mx-4 mb-3 rounded-xl bg-[var(--paper-raised)] border border-[var(--selected)] px-4 py-3">
       <p className="text-[12px] font-medium text-[var(--ink)] mb-2">Set rate for {monthLabel} only</p>
       <div className="grid grid-cols-2 gap-2 mb-2">
-        <Input label="Hourly Rate" type="number" inputMode="numeric" min={0} suffix="₩" value={draftRate} onChange={(e) => setDraftRate(e.target.value)} />
+        <Input label="Hourly Rate" type="number" inputMode="numeric" min={0} suffix={currencySymbol} value={draftRate} onChange={(e) => setDraftRate(e.target.value)} />
         <Input label="Tax Rate" type="number" inputMode="decimal" min={0} max={100} step={0.1} suffix="%" value={draftTax} onChange={(e) => setDraftTax(e.target.value)} />
       </div>
       {error && <p className="text-[12px] text-[var(--negative)] mb-2">{error}</p>}
@@ -71,7 +74,7 @@ export function MonthRateBar({ monthLabel, hourlyRate, taxRate, recordCount, sav
           Cancel
         </Button>
         <Button variant="primary" fullWidth onClick={handleReview} disabled={saving}>
-          {saving ? 'Applying…' : 'Apply'}
+          {saving ? t('Applying…') : t('Apply')}
         </Button>
       </div>
 
@@ -83,7 +86,7 @@ export function MonthRateBar({ monthLabel, hourlyRate, taxRate, recordCount, sav
             ? `This recalculates all ${recordCount} record${recordCount === 1 ? '' : 's'} already logged this month using the new rate and tax. Other months are not affected. This cannot be undone.`
             : `This sets the default rate for new records you add this month. Other months are not affected.`
         }
-        confirmLabel="Yes, apply"
+        confirmLabel={t("Yes, apply")}
         danger={recordCount > 0}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}
@@ -91,3 +94,4 @@ export function MonthRateBar({ monthLabel, hourlyRate, taxRate, recordCount, sav
     </div>
   );
 }
+

@@ -1,7 +1,8 @@
-import { formatNumber } from '@/utils/currencyUtils';
 import { formatHoursMinutes } from '@/utils/salaryCalculations';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export function CalendarDay({ cell, record, isSelected, onClick }) {
+  const { formatCurrency } = useCurrency();
   const { isCurrentMonth, isToday, weekday, day } = cell;
   const isSunday = weekday === 0;
   const isSaturday = weekday === 6;
@@ -34,7 +35,7 @@ export function CalendarDay({ cell, record, isSelected, onClick }) {
             {formatHoursMinutes(record.totalHours)}
           </span>
           <span className="text-[10px] leading-none text-[var(--ink-soft)] tabular hidden sm:block">
-            ₩{formatNumber(record.netSalary)}
+            {formatCurrency(record.netSalary)}
           </span>
         </div>
       )}

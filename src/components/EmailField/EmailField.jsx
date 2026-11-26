@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { changeEmail, resendVerificationEmail } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function EmailField() {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [draftEmail, setDraftEmail] = useState('');
   const [sending, setSending] = useState(false);
@@ -25,7 +27,7 @@ export function EmailField() {
     setSending(true);
     try {
       await changeEmail(draftEmail.trim());
-      showToast(`Verification link sent to ${draftEmail.trim()} — click it to confirm.`, 'success');
+      showToast(`Verification link sent to ${draftEmail.trim()} â€” click it to confirm.`, 'success');
       setShowForm(false);
       setDraftEmail('');
     } catch (err) {
@@ -49,7 +51,7 @@ export function EmailField() {
 
   return (
     <div>
-      <label className="block text-[13px] font-medium text-[var(--ink-soft)] mb-1.5">Email</label>
+      <label className="block text-[13px] font-medium text-[var(--ink-soft)] mb-1.5">{t("Email")}</label>
 
       {hasEmail && !showForm && (
         <div className="flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--paper-raised)] px-3.5 py-2.5">
@@ -57,17 +59,17 @@ export function EmailField() {
             <p className="text-[15px] text-[var(--ink)] truncate">{user.email}</p>
             <p className={`text-[12px] flex items-center gap-1 mt-0.5 ${verified ? 'text-[var(--work-strong)]' : 'text-[var(--ink-faint)]'}`}>
               {verified ? <CheckCircle2 size={13} /> : <Clock size={13} />}
-              {verified ? 'Verified' : 'Pending verification'}
+              {verified ? t('Verified') : t('Pending verification')}
             </p>
           </div>
           <div className="shrink-0 flex flex-col items-end gap-1">
             {!verified && (
               <button onClick={handleResend} disabled={sending} className="text-[12px] font-medium text-[var(--selected)] disabled:opacity-50">
-                Resend
+                {t("Resend")}
               </button>
             )}
             <button onClick={() => setShowForm(true)} className="text-[12px] font-medium text-[var(--selected)]">
-              Change
+              {t("Change")}
             </button>
           </div>
         </div>
@@ -75,9 +77,9 @@ export function EmailField() {
 
       {!hasEmail && !showForm && (
         <div className="flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--paper-raised)] px-3.5 py-2.5">
-          <p className="text-[13px] text-[var(--ink-faint)]">No email on file — you signed in with your phone number.</p>
+          <p className="text-[13px] text-[var(--ink-faint)]">No email on file â€” you signed in with your phone number.</p>
           <button onClick={() => setShowForm(true)} className="shrink-0 text-[12px] font-medium text-[var(--selected)]">
-            Add email
+            {t("Add email")}
           </button>
         </div>
       )}
@@ -92,14 +94,14 @@ export function EmailField() {
             autoFocus
           />
           <p className="text-[12px] text-[var(--ink-faint)]">
-            We'll send a confirmation link — it only takes effect once you click it{hasEmail ? '; your current email stays active until then' : ''}.
+            We'll send a confirmation link â€” it only takes effect once you click it{hasEmail ? '; your current email stays active until then' : ''}.
           </p>
           <div className="flex gap-2">
             <Button variant="secondary" fullWidth onClick={() => { setShowForm(false); setDraftEmail(''); }} disabled={sending}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button fullWidth onClick={handleSubmit} disabled={sending}>
-              {sending ? 'Sending…' : 'Send link'}
+              {sending ? 'Sendingâ€¦' : t('Send link')}
             </Button>
           </div>
         </div>
@@ -107,3 +109,4 @@ export function EmailField() {
     </div>
   );
 }
+

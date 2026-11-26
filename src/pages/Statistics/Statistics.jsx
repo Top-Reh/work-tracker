@@ -3,12 +3,15 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useYearRecords } from '@/hooks/useWorkRecords';
 import { calculateMonthlySummary, formatHoursMinutes } from '@/utils/salaryCalculations';
-import { formatCurrency, formatSignedCurrency } from '@/utils/currencyUtils';
 import { getMonthShortLabel } from '@/utils/dateUtils';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useLanguage } from '@/context/LanguageContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export function Statistics() {
+  const { t } = useLanguage();
+  const { formatCurrency, formatSignedCurrency } = useCurrency();
   const { user } = useAuth();
   const [year, setYear] = useState(new Date().getFullYear());
   const { records, loading } = useYearRecords(user?.uid, year);
@@ -33,7 +36,7 @@ export function Statistics() {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => setYear((y) => y - 1)}
-          aria-label="Previous year"
+          aria-label={t("Previous year")}
           className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-[var(--border-soft)]"
         >
           <ChevronLeft size={20} className="text-[var(--ink-soft)]" />
@@ -41,7 +44,7 @@ export function Statistics() {
         <h1 className="text-[18px] font-bold text-[var(--ink)] tabular">{year}</h1>
         <button
           onClick={() => setYear((y) => y + 1)}
-          aria-label="Next year"
+          aria-label={t("Next year")}
           className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-[var(--border-soft)]"
         >
           <ChevronRight size={20} className="text-[var(--ink-soft)]" />
@@ -49,19 +52,19 @@ export function Statistics() {
       </div>
 
       <Card className="p-5 mb-5 text-center">
-        <p className="text-[13px] font-medium text-[var(--ink-faint)] mb-1">Year Total Net Salary</p>
+        <p className="text-[13px] font-medium text-[var(--ink-faint)] mb-1">{t("Year Total Net Salary")}</p>
         <p className="ledger-total tabular text-[24px] sm:text-[32px] font-bold text-[var(--ink)] mb-3 break-all">{formatCurrency(yearTotal.netSalary)}</p>
         <div className="grid grid-cols-3 gap-2 text-left">
           <div>
-            <p className="text-[11px] text-[var(--ink-faint)] uppercase">Hours</p>
+            <p className="text-[11px] text-[var(--ink-faint)] uppercase">{t("Hours")}</p>
             <p className="text-[14px] font-semibold tabular">{formatHoursMinutes(yearTotal.totalHours)}</p>
           </div>
           <div>
-            <p className="text-[11px] text-[var(--ink-faint)] uppercase">Gross</p>
+            <p className="text-[11px] text-[var(--ink-faint)] uppercase">{t("Gross")}</p>
             <p className="text-[14px] font-semibold tabular">{formatCurrency(yearTotal.grossSalary)}</p>
           </div>
           <div>
-            <p className="text-[11px] text-[var(--ink-faint)] uppercase">Tax</p>
+            <p className="text-[11px] text-[var(--ink-faint)] uppercase">{t("Tax")}</p>
             <p className="text-[14px] font-semibold tabular text-[var(--negative)]">{formatSignedCurrency(-yearTotal.taxAmount)}</p>
           </div>
         </div>
@@ -80,7 +83,7 @@ export function Statistics() {
               <div>
                 <p className="text-[14px] font-semibold text-[var(--ink)]">{getMonthShortLabel(month)}</p>
                 <p className="text-[12px] text-[var(--ink-faint)] tabular">
-                  {summary.recordCount === 0 ? 'No records' : formatHoursMinutes(summary.totalHours)}
+                  {summary.recordCount === 0 ? t('No records') : formatHoursMinutes(summary.totalHours)}
                 </p>
               </div>
               <p className="tabular font-semibold text-[15px] text-[var(--ink)]">{formatCurrency(summary.netSalary)}</p>
@@ -91,3 +94,4 @@ export function Statistics() {
     </div>
   );
 }
+

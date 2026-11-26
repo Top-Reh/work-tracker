@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { AccountLinkRequiredError, signInWithGoogle, linkGoogleToPasswordAccount, resetPassword } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function SocialSignIn({ onSuccess, onError, onChoosePhone }) {
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   // Set when Google found an existing account for the same email under a different method.
   const [linkPrompt, setLinkPrompt] = useState(null); // { email, pendingCredential }
@@ -56,15 +58,15 @@ export function SocialSignIn({ onSuccess, onError, onChoosePhone }) {
       <div className="mt-5 space-y-3">
         <p className="text-[14px] text-[var(--ink)]">
           An account with <span className="font-medium">{linkPrompt.email}</span> already exists. Enter its password to
-          connect Google to it — your password stays exactly the same, and both ways of signing in will work.
+          connect Google to it â€” your password stays exactly the same, and both ways of signing in will work.
         </p>
-        <Input label="Password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+        <Input label={t("Password")} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
         <Button fullWidth onClick={handleLink} disabled={loading}>
-          {loading ? 'Connecting…' : 'Connect Google'}
+          {loading ? 'Connectingâ€¦' : t('Connect Google')}
         </Button>
         <div className="flex items-center justify-between">
           <button type="button" onClick={handleForgot} className="text-[13px] text-[var(--selected)] font-medium">
-            Forgot password?
+            {t("Forgot password?")}
           </button>
           <button
             type="button"
@@ -74,7 +76,7 @@ export function SocialSignIn({ onSuccess, onError, onChoosePhone }) {
             }}
             className="text-[13px] text-[var(--ink-soft)] font-medium"
           >
-            Cancel
+            {t("Cancel")}
           </button>
         </div>
       </div>
@@ -85,21 +87,22 @@ export function SocialSignIn({ onSuccess, onError, onChoosePhone }) {
     <div className="mt-5">
       <div className="flex items-center gap-3 mb-4">
         <div className="h-px flex-1 bg-[var(--border)]" />
-        <span className="text-[12px] text-[var(--ink-faint)]">or continue with</span>
+        <span className="text-[12px] text-[var(--ink-faint)]">{t("or continue with")}</span>
         <div className="h-px flex-1 bg-[var(--border)]" />
       </div>
 
       <div className="space-y-2">
         <Button variant="secondary" fullWidth onClick={handleGoogle} disabled={loading}>
-          Continue with Google
+          {t("Continue with Google")}
         </Button>
         <Button variant="secondary" fullWidth onClick={onChoosePhone} disabled={loading}>
           <span className="flex items-center justify-center gap-2">
             <Phone size={16} />
-            Continue with phone number
+            {t("Continue with phone number")}
           </span>
         </Button>
       </div>
     </div>
   );
 }
+

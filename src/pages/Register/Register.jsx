@@ -7,10 +7,12 @@ import { SocialSignIn } from '@/components/SocialSignIn/SocialSignIn';
 import { PhoneSignIn } from '@/components/PhoneSignIn/PhoneSignIn';
 import { sendRegistrationLink } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function Register() {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [method, setMethod] = useState('email'); // 'email' | 'phone'
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -52,8 +54,8 @@ export function Register() {
           <div className="w-12 h-12 rounded-2xl overflow-hidden mb-3">
             <Logo size={48} />
           </div>
-          <h1 className="text-[20px] font-bold text-[var(--ink)]">Create your account</h1>
-          <p className="text-[14px] text-[var(--ink-faint)] mt-1 text-center">Track your hours and salary in seconds</p>
+          <h1 className="text-[20px] font-bold text-[var(--ink)]">{t("Create your account")}</h1>
+          <p className="text-[14px] text-[var(--ink-faint)] mt-1 text-center">{t("Track your hours and salary in seconds")}</p>
         </div>
 
         {method === 'email' ? (
@@ -61,11 +63,11 @@ export function Register() {
             <div className="text-center space-y-4">
               <p className="text-[14px] text-[var(--ink)]">
                 We sent a verification link to <span className="font-medium">{email}</span>. Open it to finish creating
-                your account — nothing is created until you do.
+                your account Ã¢â‚¬â€ nothing is created until you do.
               </p>
               <p className="text-[12px] text-[var(--ink-faint)]">Didn't get it? Check spam, or resend below.</p>
               <Button variant="secondary" fullWidth onClick={handleResend} disabled={loading}>
-                {loading ? 'Sending…' : 'Resend link'}
+                {loading ? 'SendingÃ¢â‚¬Â¦' : 'Resend link'}
               </Button>
               <button type="button" onClick={() => setSent(false)} className="text-[13px] text-[var(--selected)] font-medium">
                 Use a different email
@@ -74,10 +76,10 @@ export function Register() {
           ) : (
             <>
               <form onSubmit={handleSubmit} className="space-y-3">
-                <Input label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input label={t("Email")} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 {error && <p className="text-[13px] text-[var(--negative)]">{error}</p>}
                 <Button type="submit" fullWidth disabled={loading}>
-                  {loading ? 'Sending…' : 'Send verification link'}
+                  {loading ? 'SendingÃ¢â‚¬Â¦' : t('Send verification link')}
                 </Button>
               </form>
 
@@ -100,7 +102,7 @@ export function Register() {
           <p className="text-center text-[14px] text-[var(--ink-soft)] mt-6">
             Already have an account?{' '}
             <Link to="/login" className="text-[var(--selected)] font-medium">
-              Sign in
+              {t("Sign In")}
             </Link>
           </p>
         )}
@@ -108,3 +110,5 @@ export function Register() {
     </div>
   );
 }
+
+

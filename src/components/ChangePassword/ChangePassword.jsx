@@ -5,15 +5,17 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { changePasswordWithCurrent } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 //gg//
 
 /**
  * Only for accounts that sign in with a password (otherwise PasswordSetup is shown instead).
- * Collapsed by default — the form only appears once the user taps "Change password".
+ * Collapsed by default â€” the form only appears once the user taps "Change password".
  */
 export function ChangePassword() {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -53,11 +55,11 @@ export function ChangePassword() {
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="text-[14px] font-semibold text-[var(--ink)]">Password</h2>
-            <p className="text-[12px] text-[var(--ink-faint)] mt-0.5">Update your sign-in password.</p>
+            <h2 className="text-[14px] font-semibold text-[var(--ink)]">{t("Password")}</h2>
+            <p className="text-[12px] text-[var(--ink-faint)] mt-0.5">{t("Update your sign-in password.")}</p>
           </div>
           <Button variant="secondary" className="shrink-0 whitespace-nowrap" onClick={() => setOpen(true)}>
-            Change password
+            {t("Change password")}
           </Button>
         </div>
       </Card>
@@ -66,20 +68,21 @@ export function ChangePassword() {
 
   return (
     <Card className="p-5">
-      <h2 className="text-[14px] font-semibold text-[var(--ink)] mb-4">Change password</h2>
+      <h2 className="text-[14px] font-semibold text-[var(--ink)] mb-4">{t("Change password")}</h2>
       <div className="space-y-3">
-        <Input label="Current Password" type="password" autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoFocus />
-        <Input label="New Password" type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-        <Input label="Confirm New Password" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        <Input label={t("Current Password")} type="password" autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoFocus />
+        <Input label={t("New Password")} type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+        <Input label={t("Confirm New Password")} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         <div className="flex gap-2">
           <Button variant="secondary" fullWidth onClick={close} disabled={saving}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button fullWidth onClick={handleSubmit} disabled={saving}>
-            {saving ? 'Updating…' : 'Update password'}
+            {saving ? 'Updatingâ€¦' : t('Update password')}
           </Button>
         </div>
       </div>
     </Card>
   );
 }
+

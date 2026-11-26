@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Home, BarChart3, Settings, LogOut } from 'lucide-react';
 import { logoutUser } from '@/services/auth';
+import { useLanguage } from '@/context/LanguageContext';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: Home, end: true },
@@ -9,6 +10,7 @@ const NAV_ITEMS = [
 ];
 
 export function BottomNavigation() {
+  const { t } = useLanguage();
   return (
     <nav className="md:hidden shrink-0 bg-[var(--paper-raised)] border-t border-[var(--border)] pb-[env(safe-area-inset-bottom)]">
       <div className="flex justify-around items-center h-14">
@@ -24,7 +26,7 @@ export function BottomNavigation() {
             }
           >
             <Icon size={20} strokeWidth={2} />
-            <span className="text-[10px] font-medium">{label}</span>
+            <span className="text-[10px] font-medium">{t(label)}</span>
           </NavLink>
         ))}
         <button
@@ -32,9 +34,10 @@ export function BottomNavigation() {
           className="flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-lg text-[var(--ink-faint)]"
         >
           <LogOut size={20} strokeWidth={2} />
-          <span className="text-[10px] font-medium">Logout</span>
+          <span className="text-[10px] font-medium">{t("Logout")}</span>
         </button>
       </div>
     </nav>
   );
 }
+

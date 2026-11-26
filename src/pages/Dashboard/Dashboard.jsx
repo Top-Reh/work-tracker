@@ -13,12 +13,14 @@ import { setMonthSettings } from '@/services/monthSettings';
 import { addMonths } from '@/utils/dateUtils';
 import { generateId } from '@/utils/id';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function Dashboard() {
   const { user, profile, profileLoading } = useAuth();
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -160,8 +162,8 @@ export function Dashboard() {
 
           {records.length === 0 && (
             <div className="mx-4 mb-3 rounded-xl bg-[var(--work-soft)] px-4 py-3 text-center">
-              <p className="text-[13px] text-[var(--work-strong)] font-medium">No work records yet.</p>
-              <p className="text-[12px] text-[var(--ink-soft)] mt-0.5">Tap a date below to add your first work record.</p>
+              <p className="text-[13px] text-[var(--work-strong)] font-medium">{t("No work records yet.")}</p>
+              <p className="text-[12px] text-[var(--ink-soft)] mt-0.5">{t("Tap a date below to add your first work record.")}</p>
             </div>
           )}
 
@@ -191,3 +193,4 @@ export function Dashboard() {
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function ConfirmDialog({
   open,
@@ -10,6 +11,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }) {
+  const { t } = useLanguage();
   if (!open) return null;
 
   return (
@@ -24,13 +26,15 @@ export function ConfirmDialog({
         <p className="text-[14px] text-[var(--ink-soft)] mb-5">{description}</p>
         <div className="flex gap-2">
           <Button variant="secondary" fullWidth onClick={onCancel}>
-            {cancelLabel}
+            {t(cancelLabel)}
           </Button>
           <Button variant={danger ? 'danger' : 'primary'} fullWidth onClick={onConfirm}>
-            {confirmLabel}
+            {t(confirmLabel)}
           </Button>
         </div>
       </div>
     </div>
   );
 }
+
+

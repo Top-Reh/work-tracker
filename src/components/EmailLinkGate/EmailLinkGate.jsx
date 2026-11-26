@@ -3,6 +3,7 @@ import { Logo } from '@/components/Logo/Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { isEmailLinkSignIn, completeEmailLinkSignIn } from '@/services/auth';
+import { useLanguage } from '@/context/LanguageContext';
 
 const STORAGE_KEY = 'emailForSignIn';
 
@@ -14,6 +15,7 @@ function cleanUrl() {
 }
 
 export function EmailLinkGate({ children }) {
+  const { t } = useLanguage();
   const [status, setStatus] = useState('checking'); // 'checking' | 'resolving' | 'needsEmail' | 'done'
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -70,7 +72,7 @@ export function EmailLinkGate({ children }) {
           <div className="w-12 h-12 rounded-2xl overflow-hidden mx-auto">
             <Logo size={48} />
           </div>
-          <h1 className="text-[18px] font-bold text-[var(--ink)]">Confirm your email</h1>
+          <h1 className="text-[18px] font-bold text-[var(--ink)]">{t("Confirm your email")}</h1>
           <p className="text-[14px] text-[var(--ink-faint)]">
             This link was opened on a different device or browser than where you started. Enter the email you used to
             request it, so we can confirm it's really you.
@@ -78,7 +80,7 @@ export function EmailLinkGate({ children }) {
           <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
           {error && <p className="text-[13px] text-[var(--negative)]">{error}</p>}
           <Button type="submit" fullWidth>
-            Confirm
+            {t("Confirm")}
           </Button>
         </form>
       </div>
@@ -87,3 +89,4 @@ export function EmailLinkGate({ children }) {
 
   return children;
 }
+

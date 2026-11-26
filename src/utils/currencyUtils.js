@@ -1,27 +1,25 @@
-const KRW_FORMATTER = new Intl.NumberFormat('ko-KR', {
-  style: 'currency',
-  currency: 'KRW',
-  maximumFractionDigits: 0,
-});
+const CURRENCY_LOCALES = {
+  USD: 'en-US', KRW: 'ko-KR', JPY: 'ja-JP', MMK: 'my-MM', THB: 'th-TH', VND: 'vi-VN',
+};
 
-const NUMBER_FORMATTER = new Intl.NumberFormat('ko-KR', {
-  maximumFractionDigits: 0,
-});
-
-/** ₩1,250,000 */
-export function formatCurrency(amount) {
-  return KRW_FORMATTER.format(amount);
+/** Formats an amount using the selected currency, without converting its numeric value. */
+export function formatCurrency(amount, currency = 'KRW') {
+  const locale = CURRENCY_LOCALES[currency] ?? CURRENCY_LOCALES.KRW;
+  return new Intl.NumberFormat(locale, {
+    style: 'currency', currency, maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 /** -₩32,170 for negative amounts (tax), ₩942,830 otherwise */
-export function formatSignedCurrency(amount) {
-  if (amount < 0) return `-${formatCurrency(Math.abs(amount))}`;
-  return formatCurrency(amount);
+export function formatSignedCurrency(amount, currency = 'KRW') {
+  if (amount < 0) return `-${formatCurrency(Math.abs(amount), currency)}`;
+  return formatCurrency(amount, currency);
 }
 
 /** 1,250,000 without currency symbol */
-export function formatNumber(amount) {
-  return NUMBER_FORMATTER.format(amount);
+export function formatNumber(amount, currency = 'KRW') {
+  const locale = CURRENCY_LOCALES[currency] ?? CURRENCY_LOCALES.KRW;
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(amount);
 }
 
 /** Parses user input like "10,000" or "₩10,000" back into a number */

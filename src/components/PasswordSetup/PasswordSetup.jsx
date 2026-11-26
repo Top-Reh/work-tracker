@@ -5,15 +5,17 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { addPasswordToAccount } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 /**
  * Only appears for accounts that have an email but no password sign-in (for example, after
- * signing in with Google). Lets the user add a password to the SAME account — nothing new
+ * signing in with Google). Lets the user add a password to the SAME account â€” nothing new
  * is created, and Google sign-in keeps working.
  */
 export function PasswordSetup() {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [saving, setSaving] = useState(false);
@@ -39,17 +41,18 @@ export function PasswordSetup() {
 
   return (
     <Card className="p-5">
-      <h2 className="text-[14px] font-semibold text-[var(--ink)] mb-1">Password sign-in</h2>
+      <h2 className="text-[14px] font-semibold text-[var(--ink)] mb-1">{t("Password sign-in")}</h2>
       <p className="text-[12px] text-[var(--ink-faint)] mb-4">
         You currently sign in with Google. Set a password to also sign in with <span className="font-medium">{user.email}</span> and a password.
       </p>
       <div className="space-y-3">
-        <Input label="New Password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <Input label="Confirm Password" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        <Input label={t("New Password")} type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input label={t("Confirm Password")} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         <Button fullWidth onClick={handleSubmit} disabled={saving}>
-          {saving ? 'Saving…' : 'Set password'}
+          {saving ? 'Savingâ€¦' : t('Set password')}
         </Button>
       </div>
     </Card>
   );
 }
+

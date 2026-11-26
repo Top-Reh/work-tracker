@@ -4,8 +4,10 @@ import { Input } from '@/components/ui/Input';
 import { sendPhoneVerificationCode, confirmPhoneCode } from '@/services/auth';
 import { toE164 } from '@/utils/phoneUtils';
 import { COUNTRY_CODES } from '@/utils/countryCodes';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function PhoneSignIn({ onSuccess, onError, onBack }) {
+  const { t } = useLanguage();
   const [dialCode, setDialCode] = useState(COUNTRY_CODES[0].dial);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [code, setCode] = useState('');
@@ -46,7 +48,7 @@ export function PhoneSignIn({ onSuccess, onError, onBack }) {
       {!confirmation ? (
         <>
           <div>
-            <label className="block text-[13px] font-medium text-[var(--ink-soft)] mb-1.5">Phone Number</label>
+            <label className="block text-[13px] font-medium text-[var(--ink-soft)] mb-1.5">{t("Phone Number")}</label>
             <div className="flex gap-2">
               <select
                 value={dialCode}
@@ -68,23 +70,23 @@ export function PhoneSignIn({ onSuccess, onError, onBack }) {
                 className="flex-1"
               />
             </div>
-            <p className="text-[12px] text-[var(--ink-faint)] mt-1.5">Pick your country, then just your number — no need to type the country code.</p>
+            <p className="text-[12px] text-[var(--ink-faint)] mt-1.5">Pick your country, then just your number â€” no need to type the country code.</p>
           </div>
           <Button fullWidth onClick={handleSendCode} disabled={loading}>
-            {loading ? 'Sending…' : 'Send verification code'}
+            {loading ? 'Sendingâ€¦' : t('Send verification code')}
           </Button>
         </>
       ) : (
         <>
-          <Input label="Verification Code" type="text" inputMode="numeric" placeholder="123456" value={code} onChange={(e) => setCode(e.target.value)} />
+          <Input label={t("Verification Code")} type="text" inputMode="numeric" placeholder="123456" value={code} onChange={(e) => setCode(e.target.value)} />
           <Button fullWidth onClick={handleConfirmCode} disabled={loading}>
-            {loading ? 'Verifying…' : 'Verify & sign in'}
+            {loading ? 'Verifyingâ€¦' : t('Verify & sign in')}
           </Button>
         </>
       )}
 
       <button type="button" onClick={onBack} className="text-[13px] text-[var(--selected)] font-medium w-full text-center">
-        Back to email sign-in
+        {t("Back to email sign-in")}
       </button>
 
       {/* Required, invisible container for the reCAPTCHA verifier phone auth needs. */}
@@ -92,3 +94,4 @@ export function PhoneSignIn({ onSuccess, onError, onBack }) {
     </div>
   );
 }
+

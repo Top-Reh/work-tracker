@@ -7,10 +7,12 @@ import { SocialSignIn } from '@/components/SocialSignIn/SocialSignIn';
 import { PhoneSignIn } from '@/components/PhoneSignIn/PhoneSignIn';
 import { loginUser, resetPassword } from '@/services/auth';
 import { useToast } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export function Login() {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [method, setMethod] = useState('email'); // 'email' | 'phone'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,25 +54,25 @@ export function Login() {
             <Logo size={48} />
           </div>
           <h1 className="text-[20px] font-bold text-[var(--ink)]">Work Tracker</h1>
-          <p className="text-[14px] text-[var(--ink-faint)] mt-1">Sign in to your account</p>
+          <p className="text-[14px] text-[var(--ink-faint)] mt-1">{t("Sign in to your account")}</p>
         </div>
 
         {method === 'email' ? (
           <>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <Input label="Email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-              <Input label="Password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input label={t("Email")} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input label={t("Password")} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
 
               {error && <p className="text-[13px] text-[var(--negative)]">{error}</p>}
 
               <div className="flex justify-end">
                 <button type="button" onClick={handleForgotPassword} className="text-[13px] text-[var(--selected)] font-medium">
-                  Forgot password?
+                  {t("Forgot password?")}
                 </button>
               </div>
 
               <Button type="submit" fullWidth disabled={loading}>
-                {loading ? 'Signing in…' : 'Sign In'}
+                {loading ? 'Signing inÃ¢â‚¬Â¦' : t('Sign In')}
               </Button>
             </form>
 
@@ -92,7 +94,7 @@ export function Login() {
           <p className="text-center text-[14px] text-[var(--ink-soft)] mt-6">
             Don't have an account?{' '}
             <Link to="/register" className="text-[var(--selected)] font-medium">
-              Create one
+              {t("Create one")}
             </Link>
           </p>
         )}
@@ -100,3 +102,5 @@ export function Login() {
     </div>
   );
 }
+
+

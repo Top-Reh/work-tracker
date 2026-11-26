@@ -5,9 +5,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { completeProfileSetup } from '@/services/auth';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/context/LanguageContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export function CompleteProfile() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { currencySymbol } = useCurrency();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -48,30 +52,32 @@ export function CompleteProfile() {
           <div className="w-12 h-12 rounded-2xl overflow-hidden mb-3">
             <Logo size={48} />
           </div>
-          <h1 className="text-[20px] font-bold text-[var(--ink)]">Finish setting up</h1>
+          <h1 className="text-[20px] font-bold text-[var(--ink)]">{t("Finish setting up")}</h1>
           <p className="text-[14px] text-[var(--ink-faint)] mt-1 text-center">
-            <span className="font-medium">{user?.email}</span> is verified — just a few more details.
+            <span className="font-medium">{user?.email}</span> is verified Ã¢â‚¬â€ just a few more details.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <Input label="Name" type="text" autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label="Password" type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-          <Input label="Confirm Password" type="password" autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+          <Input label={t("Name")} type="text" autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
+          <Input label={t("Password")} type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input label={t("Confirm Password")} type="password" autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
 
           <div className="grid grid-cols-2 gap-3 pt-2">
-            <Input label="Hourly Rate" type="number" min={0} suffix="₩" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} />
-            <Input label="Tax Rate" type="number" min={0} max={100} step={0.1} suffix="%" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
+            <Input label={t("Hourly Rate")} type="number" min={0} suffix={currencySymbol} value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} />
+            <Input label={t("Tax Rate")} type="number" min={0} max={100} step={0.1} suffix="%" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
           </div>
-          <p className="text-[12px] text-[var(--ink-faint)]">You can change these anytime in Settings.</p>
+          <p className="text-[12px] text-[var(--ink-faint)]">{t("You can change these anytime in Settings.")}</p>
 
           {error && <p className="text-[13px] text-[var(--negative)]">{error}</p>}
 
           <Button type="submit" fullWidth disabled={loading}>
-            {loading ? 'Finishing…' : 'Finish'}
+            {loading ? 'FinishingÃ¢â‚¬Â¦' : t('Finish')}
           </Button>
         </form>
       </div>
     </div>
   );
 }
+
+

@@ -1,6 +1,8 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { LanguageProvider } from '@/context/LanguageContext';
+import { CurrencyProvider } from '@/context/CurrencyContext';
 import { EmailLinkGate } from '@/components/EmailLinkGate/EmailLinkGate';
 import { ProtectedRoute, OnboardingRoute } from '@/components/ProtectedRoute';
 import { Login } from '@/pages/Login/Login';
@@ -12,9 +14,11 @@ import { Settings } from '@/pages/Settings/Settings';
 
 export default function App() {
   return (
-    <ToastProvider>
+    <LanguageProvider>
+      <ToastProvider>
       <EmailLinkGate>
         <AuthProvider>
+          <CurrencyProvider>
           <HashRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -54,8 +58,12 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </HashRouter>
+          </CurrencyProvider>
         </AuthProvider>
       </EmailLinkGate>
-    </ToastProvider>
+      </ToastProvider>
+    </LanguageProvider>
   );
 }
+
+

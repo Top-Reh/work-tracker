@@ -91,3 +91,16 @@ export function currentTimeKey() {
   const now = new Date();
   return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 }
+
+export function formatTimeLabel(timeKey) {
+  if (!timeKey) return '';
+  const [hours, minutes] = timeKey.split(':').map(Number);
+  const date = new Date(2000, 0, 1, hours, minutes);
+  return date
+    .toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      ...(minutes ? { minute: '2-digit' } : {}),
+      hour12: true,
+    })
+    .toLowerCase();
+}
