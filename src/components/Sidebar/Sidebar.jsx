@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { CalendarDays, BarChart3, Settings, LogOut } from 'lucide-react';
+import { CalendarDays, BarChart3, Settings, LogOut, ArrowLeftRight } from 'lucide-react';
 import { Logo } from '@/components/Logo/Logo';
 import { logoutUser } from '@/services/auth';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,6 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 const NAV_ITEMS = [
   { to: '/', label: 'Calendar', icon: CalendarDays, end: true },
   { to: '/statistics', label: 'Statistics', icon: BarChart3, end: false },
+  { to: '/rates', label: 'Rates', icon: ArrowLeftRight, end: false },
   { to: '/settings', label: 'Settings', icon: Settings, end: false },
 ];
 

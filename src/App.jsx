@@ -11,6 +11,7 @@ import { CompleteProfile } from '@/pages/CompleteProfile/CompleteProfile';
 import { Dashboard } from '@/pages/Dashboard/Dashboard';
 import { Statistics } from '@/pages/Statistics/Statistics';
 import { Settings } from '@/pages/Settings/Settings';
+import { ExchangeRates } from '@/pages/ExchangeRates/ExchangeRates';
 
 export default function App() {
   return (
@@ -44,6 +45,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Statistics />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/rates"
+                element={
+                  <ProtectedRoute>
+                    <ExchangeRates />
                   </ProtectedRoute>
                 }
               />

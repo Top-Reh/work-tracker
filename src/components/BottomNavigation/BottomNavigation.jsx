@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Home, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Home, BarChart3, Settings, LogOut, ArrowLeftRight } from 'lucide-react';
 import { logoutUser } from '@/services/auth';
 import { useLanguage } from '@/context/LanguageContext';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/statistics', label: 'Stats', icon: BarChart3, end: false },
+  { to: '/rates', label: 'Rates', icon: ArrowLeftRight, end: false },
   { to: '/settings', label: 'Settings', icon: Settings, end: false },
 ];
 
